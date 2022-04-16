@@ -13,7 +13,7 @@ const checkToken = (req, res, next) => {
     next();
   });
 };
-app.use(checkToken);
+// app.use(checkToken);
 app.get('/', (req, res)=> {
   res.send('hello thang')
 })
