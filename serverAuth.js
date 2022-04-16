@@ -1,17 +1,42 @@
 import express from "express";
 import dotenv from "dotenv";
-const app = express();
 import jwt from "jsonwebtoken";
 
+const app = express();
 dotenv.config();
 app.use(express.json());
 
+let RefreshToken = [];
+
+app.use(express.urlencoded({ extended: false }));
+
 app.post("/login", (req, res) => {
-  let {} = req.body;
-  let accessToken = jwt.sign(req.body, process.env.SECRET_TOKEN, {
-    expiresIn: "30s",
+  let { username } = req.body;
+
+  let accessToken = jwt.sign({ username }, process.env.SECRET_TOKEN, {
+    expiresIn: 60,
   });
-  res.send(accessToken);
+  let refreshToken = jwt.sign({ username }, process.env.REFRESH_TOKEN);
+  RefreshToken.push(refreshToken);
+  res.send({ accessToken, refreshToken });
+});
+
+app.post("/getRefreshToken", (req, res) => {
+  let { refreshToken } = req.body;
+  if (refreshToken == null) res.sendStatus(401);
+  if (!RefreshToken.includes(refreshToken)) res.sendStatus(403);
+  jwt.verify(refreshToken, process.env.REFRESH_TOKEN, (err, user) => {
+    console.log(user);
+    if (err) return res.sendStatus(403);
+    const accessToken = jwt.sign(
+      { username: user.username },
+      process.env.SECRET_TOKEN,
+      {
+        expiresIn: 60,
+      }
+    );
+    res.json(accessToken);
+  });
 });
 
 app.listen(process.env.PORTAUTH, () => {
