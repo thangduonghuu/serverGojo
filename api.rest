@@ -1,0 +1,6 @@
+GET https://gojo-expressjs-mysql.herokuapp.com/
+Content-Type: application/json
+
+{
+    "username":"username",
+}
